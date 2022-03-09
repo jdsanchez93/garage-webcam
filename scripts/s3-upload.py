@@ -26,6 +26,27 @@ def upload_file(file_name, bucket, object_name=None):
         return False
     return True
 
+def receiveSqsMessage(queueUrl):
+    sqs_client = boto3.client('sqs', region_name="us-west-1")
+    response = sqs_client.receive_message(
+        QueueUrl=queueUrl,
+        MaxNumberOfMessages=1,
+        WaitTimeSeconds=0,
+    )
 
+    if "Messages" in response:
+        
+        # TODO capture image here
+
+        sqs_client.delete_message(
+            QueueUrl=queueUrl,
+            ReceiptHandle=response['Messages'][0]['ReceiptHandle'],
+        )
+    else:
+        print("No messages")
+
+
+queueUrl = '.'
 bucketName = "not-my-bucket"
-upload_file('sadge.jpg', bucketName)
+#upload_file('sadge.jpg', bucketName)
+receiveMessage(queueUrl)
