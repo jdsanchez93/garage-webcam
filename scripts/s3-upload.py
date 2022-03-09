@@ -2,7 +2,7 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 import os
-
+import sys
 
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
@@ -35,8 +35,10 @@ def receiveSqsMessage(queueUrl):
     )
 
     if "Messages" in response:
+        print(response['Messages'][0]['Body'])
         
         # TODO capture image here
+        upload_file('sadge.jpg', bucketName)
 
         sqs_client.delete_message(
             QueueUrl=queueUrl,
@@ -45,8 +47,7 @@ def receiveSqsMessage(queueUrl):
     else:
         print("No messages")
 
+bucketName = sys.argv[1]
+queueUrl = sys.argv[2]
 
-queueUrl = '.'
-bucketName = "not-my-bucket"
-#upload_file('sadge.jpg', bucketName)
 receiveSqsMessage(queueUrl)
