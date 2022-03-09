@@ -49,4 +49,4 @@ def receiveSqsMessage(queueUrl):
 queueUrl = '.'
 bucketName = "not-my-bucket"
 #upload_file('sadge.jpg', bucketName)
-receiveMessage(queueUrl)
+receiveSqsMessage(queueUrl)
