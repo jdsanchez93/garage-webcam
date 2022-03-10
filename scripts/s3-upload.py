@@ -25,18 +25,16 @@ def uploadFile(file_name, bucket, object_name):
         return False
     return True
 
-def receiveSqsMessage(queueUrl):
+def receiveSqsMessage(bucketName, queueUrl):
     sqs_client = boto3.client('sqs', region_name="us-west-1")
     response = sqs_client.receive_message(
-        QueueUrl=queueUrl,
-        MaxNumberOfMessages=1,
-        WaitTimeSeconds=0,
+        QueueUrl=queueUrl
     )
 
     if "Messages" in response:
         print("Message from SQS: " + response['Messages'][0]['Body'])
         
-        captureImage()
+        captureImage(bucketName)
         
         print("Deleting message from sqs")
         sqs_client.delete_message(
@@ -46,7 +44,7 @@ def receiveSqsMessage(queueUrl):
     else:
         print("No messages in SQS")
         
-def captureImage():
+def captureImage(bucketName):
     vid = cv2.VideoCapture(0)
     # TODO fix this double call, which seems necessary for image quality
     ret, frame = vid.read()
@@ -72,7 +70,8 @@ def captureImage():
         print('Could not read video capture')
 
 
-bucketName = sys.argv[1]
-queueUrl = sys.argv[2]
+BUCKET_NAME = sys.argv[1]
+QUEUE_URL = sys.argv[2]
 
-receiveSqsMessage(queueUrl)
+while True:
+    receiveSqsMessage(BUCKET_NAME, QUEUE_URL)
