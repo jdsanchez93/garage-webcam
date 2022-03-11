@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Pi Webcam Stack
+
+Resources:
+  PiUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: garage-pi-user
+
+  WebcamQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      QueueName: pi-webcam-queue
+      ReceiveMessageWaitTimeSeconds: 20
+  
+  WebcamQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      PolicyDocument:
+        Statement: 
+        - 
+          Action: 
+            - "SQS:SendMessage" 
+            - "SQS:ReceiveMessage"
+            - "SQS:DeleteMessage"
+          Effect: Allow
+          Resource: !GetAtt WebcamQueue.Arn
+          Principal:
+            AWS: !GetAtt PiUser.Arn
+      Queues:
+        - !Ref WebcamQueue
+
+  PiAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref PiUser
+
+  WebcamImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: garage-pi-webcam-images
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      # NotificationConfiguration:
+
+  WebcamImageBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref WebcamImageBucket
+      PolicyDocument:
+        Statement: 
+        - 
+          Action: 
+            - "S3:PutObject"
+          Effect: Allow
+          Resource: !Join 
+              - ''
+              - - !GetAtt WebcamImageBucket.Arn
+                - /*
+          Principal:
+            AWS: !GetAtt PiUser.Arn
+
+Outputs:
+  AccessKeyformyaccesskey:
+    Value: !Ref PiAccessKey
+  SecretKeyformyaccesskey:
+    Value: !GetAtt PiAccessKey.SecretAccessKey
