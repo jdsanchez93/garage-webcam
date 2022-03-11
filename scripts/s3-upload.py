@@ -32,9 +32,10 @@ def receiveSqsMessage(bucketName, queueUrl):
     )
 
     if "Messages" in response:
-        print("Message from SQS: " + response['Messages'][0]['Body'])
+        fileName = response['Messages'][0]['Body']
+        print("Message from SQS: " + fileName)
         
-        captureImage(bucketName)
+        captureImage(bucketName, fileName)
         
         print("Deleting message from sqs")
         sqs_client.delete_message(
@@ -44,16 +45,14 @@ def receiveSqsMessage(bucketName, queueUrl):
     else:
         print("No messages in SQS")
         
-def captureImage(bucketName):
+def captureImage(bucketName, fileName):
     vid = cv2.VideoCapture(0)
     # TODO fix this double call, which seems necessary for image quality
     ret, frame = vid.read()
     ret, frame = vid.read()
     
     if ret:
-        now = datetime.now(ZoneInfo("America/Denver"))
-        dt_string = now.strftime("%Y%m%d_%H%M%S")
-        fileName = "{0}.png".format(dt_string)
+        fileName = "{0}.png".format(fileName)
         
         encoded, buf = cv2.imencode('.png', frame)
         
