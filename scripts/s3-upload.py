@@ -6,6 +6,7 @@ import sys
 import cv2
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import json
 
 def uploadFile(file_name, bucket, object_name):
     """Upload a file to an S3 bucket
@@ -32,10 +33,10 @@ def receiveSqsMessage(bucketName, queueUrl):
     )
 
     if "Messages" in response:
-        fileName = response['Messages'][0]['Body']
-        print("Message from SQS: " + fileName)
+        message = json.loads(response['Messages'][0]['Body'])
+        print(message)
         
-        captureImage(bucketName, fileName)
+        captureImage(bucketName, message)
         
         print("Deleting message from sqs")
         sqs_client.delete_message(
@@ -45,14 +46,20 @@ def receiveSqsMessage(bucketName, queueUrl):
     else:
         print("No messages in SQS")
         
-def captureImage(bucketName, fileName):
+def captureImage(bucketName, message):
     vid = cv2.VideoCapture(0)
+    if "Brightness" in message:
+        brightness = message['Brightness']
+        if brightness is not None:
+            print("Setting brightness")
+            vid.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
     # TODO fix this double call, which seems necessary for image quality
     ret, frame = vid.read()
     ret, frame = vid.read()
     
     if ret:
-        fileName = "{0}.png".format(fileName)
+        imageId = message['ImageId']
+        fileName = "{0}.png".format(imageId)
         
         encoded, buf = cv2.imencode('.png', frame)
         
