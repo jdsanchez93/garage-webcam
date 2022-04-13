@@ -45,26 +45,34 @@ def receiveSqsMessage(bucketName, queueUrl):
         )
     else:
         print("No messages in SQS")
+
+cameraProperties = {
+    "Brightness": cv2.CAP_PROP_BRIGHTNESS,
+    "Contrast": cv2.CAP_PROP_CONTRAST
+}
+
+def setVideoCapturePropery(propName, settings, propId, vid):
+    if propName in settings:
+        x = settings[propName]
+        if x is not None:
+            print(propName, x)
+            vid.set(propId, x)
         
 def captureImage(bucketName, message):
     vid = cv2.VideoCapture(0)
     if "WebcamSettings" in message:
         settings = message['WebcamSettings']
-        if "Brightness" in settings:
-            brightness = settings['Brightness']
-            if brightness is not None:
-                print("Setting brightness")
-                vid.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
+        for prop in cameraProperties:
+            setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
 
     print("\nAuto settings")
     print("CAP_PROP_AUTO_EXPOSURE", vid.get(cv2.CAP_PROP_AUTO_EXPOSURE))
     print("CAP_PROP_AUTOFOCUS", vid.get(cv2.CAP_PROP_AUTOFOCUS))
     print("CAP_PROP_AUTO_WB", vid.get(cv2.CAP_PROP_AUTO_WB))
-    print("Manually set")
+    print("\nManually set")
     print("CAP_PROP_BRIGHTNESS", vid.get(cv2.CAP_PROP_BRIGHTNESS))
-    print("Test these")
-    print("CAP_PROP_GAMMA", vid.get(cv2.CAP_PROP_GAMMA))
     print("CAP_PROP_CONTRAST", vid.get(cv2.CAP_PROP_CONTRAST))
+    print("CAP_PROP_GAMMA", vid.get(cv2.CAP_PROP_GAMMA))
     print("CAP_PROP_SATURATION", vid.get(cv2.CAP_PROP_SATURATION))
     print("CAP_PROP_MODE", vid.get(cv2.CAP_PROP_MODE))
     print("CAP_PROP_SHARPNESS", vid.get(cv2.CAP_PROP_SHARPNESS))
