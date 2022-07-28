@@ -7,6 +7,7 @@ import cv2
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
+from smartlight import setSmartLight
 
 def uploadFile(file_name, bucket, object_name):
     """Upload a file to an S3 bucket
@@ -60,6 +61,11 @@ def setVideoCapturePropery(propName, settings, propId, vid):
         
 def captureImage(bucketName, message):
     vid = cv2.VideoCapture(0)
+    if "SmartLightSettings" in message:
+        settings = message['SmartLightSettings']
+        print(settings)
+        setSmartLight(SMART_LIGHT_API_URL, settings)
+
     if "WebcamSettings" in message:
         settings = message['WebcamSettings']
         for prop in cameraProperties:
@@ -102,6 +108,7 @@ def captureImage(bucketName, message):
 
 BUCKET_NAME = sys.argv[1]
 QUEUE_URL = sys.argv[2]
+SMART_LIGHT_API_URL=sys.argv[3]
 
 while True:
     receiveSqsMessage(BUCKET_NAME, QUEUE_URL)
