@@ -42,11 +42,6 @@ def receiveSqsMessage(bucketName, queueUrl):
             setSmartLight(SMART_LIGHT_API_URL, settings)
 
         if "WebcamSettings" in message:
-            settings = message['WebcamSettings']
-            for prop in cameraProperties:
-                setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
-            if "printSettings" and settings[printSettings] == True in settings:
-                printSettings()
             captureImage(bucketName, message)
         
         print("Deleting message from sqs")
@@ -71,6 +66,12 @@ def setVideoCapturePropery(propName, settings, propId, vid):
         
 def captureImage(bucketName, message):
     vid = cv2.VideoCapture(0)
+
+    settings = message['WebcamSettings']
+    for prop in cameraProperties:
+        setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
+    if "printSettings" and settings[printSettings] == True in settings:
+        printSettings()
 
     # TODO fix this double call, which seems necessary for image quality
     ret, frame = vid.read()
