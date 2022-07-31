@@ -36,8 +36,18 @@ def receiveSqsMessage(bucketName, queueUrl):
     if "Messages" in response:
         message = json.loads(response['Messages'][0]['Body'])
         print(message)
-        
-        captureImage(bucketName, message)
+
+        if "SmartLightSettings" in message:
+            settings = message['SmartLightSettings']
+            setSmartLight(SMART_LIGHT_API_URL, settings)
+
+        if "WebcamSettings" in message:
+            settings = message['WebcamSettings']
+            for prop in cameraProperties:
+                setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
+            if "printSettings" and settings[printSettings] == True in settings:
+                printSettings()
+            captureImage(bucketName, message)
         
         print("Deleting message from sqs")
         sqs_client.delete_message(
@@ -61,27 +71,6 @@ def setVideoCapturePropery(propName, settings, propId, vid):
         
 def captureImage(bucketName, message):
     vid = cv2.VideoCapture(0)
-    if "SmartLightSettings" in message:
-        settings = message['SmartLightSettings']
-        print(settings)
-        setSmartLight(SMART_LIGHT_API_URL, settings)
-
-    if "WebcamSettings" in message:
-        settings = message['WebcamSettings']
-        for prop in cameraProperties:
-            setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
-
-    print("\nAuto settings")
-    print("CAP_PROP_AUTO_EXPOSURE", vid.get(cv2.CAP_PROP_AUTO_EXPOSURE))
-    print("CAP_PROP_AUTOFOCUS", vid.get(cv2.CAP_PROP_AUTOFOCUS))
-    print("CAP_PROP_AUTO_WB", vid.get(cv2.CAP_PROP_AUTO_WB))
-    print("\nManually set")
-    print("CAP_PROP_BRIGHTNESS", vid.get(cv2.CAP_PROP_BRIGHTNESS))
-    print("CAP_PROP_CONTRAST", vid.get(cv2.CAP_PROP_CONTRAST))
-    print("CAP_PROP_GAMMA", vid.get(cv2.CAP_PROP_GAMMA))
-    print("CAP_PROP_SATURATION", vid.get(cv2.CAP_PROP_SATURATION))
-    print("CAP_PROP_MODE", vid.get(cv2.CAP_PROP_MODE))
-    print("CAP_PROP_SHARPNESS", vid.get(cv2.CAP_PROP_SHARPNESS))
 
     # TODO fix this double call, which seems necessary for image quality
     ret, frame = vid.read()
@@ -104,6 +93,19 @@ def captureImage(bucketName, message):
         cv2.destroyAllWindows()
     else:
         print('Could not read video capture')
+
+def printSettings():
+    print("\nAuto settings")
+    print("CAP_PROP_AUTO_EXPOSURE", vid.get(cv2.CAP_PROP_AUTO_EXPOSURE))
+    print("CAP_PROP_AUTOFOCUS", vid.get(cv2.CAP_PROP_AUTOFOCUS))
+    print("CAP_PROP_AUTO_WB", vid.get(cv2.CAP_PROP_AUTO_WB))
+    print("\nManually set")
+    print("CAP_PROP_BRIGHTNESS", vid.get(cv2.CAP_PROP_BRIGHTNESS))
+    print("CAP_PROP_CONTRAST", vid.get(cv2.CAP_PROP_CONTRAST))
+    print("CAP_PROP_GAMMA", vid.get(cv2.CAP_PROP_GAMMA))
+    print("CAP_PROP_SATURATION", vid.get(cv2.CAP_PROP_SATURATION))
+    print("CAP_PROP_MODE", vid.get(cv2.CAP_PROP_MODE))
+    print("CAP_PROP_SHARPNESS", vid.get(cv2.CAP_PROP_SHARPNESS))
 
 
 BUCKET_NAME = sys.argv[1]
