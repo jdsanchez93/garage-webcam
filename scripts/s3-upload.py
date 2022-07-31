@@ -70,7 +70,7 @@ def captureImage(bucketName, message):
     settings = message['WebcamSettings']
     for prop in cameraProperties:
         setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
-    if "printSettings" and settings[printSettings] == True in settings:
+    if "printSettings" in settings and settings[printSettings] == True in settings:
         printSettings()
 
     # TODO fix this double call, which seems necessary for image quality
