@@ -37,8 +37,8 @@ def receiveSqsMessage(bucketName, queueUrl):
         message = json.loads(response['Messages'][0]['Body'])
         print(message)
 
-        if "SmartLightSettings" in message:
-            settings = message['SmartLightSettings']
+        if "LightSettings" in message:
+            settings = message['LightSettings']
             setSmartLight(SMART_LIGHT_API_URL, settings)
 
         if "WebcamSettings" in message:
@@ -70,7 +70,7 @@ def captureImage(bucketName, message):
     settings = message['WebcamSettings']
     for prop in cameraProperties:
         setVideoCapturePropery(prop, settings, cameraProperties[prop], vid)
-    if "printSettings" in settings and settings[printSettings] == True in settings:
+    if "printSettings" in settings and settings[printSettings] == True:
         printSettings()
 
     # TODO fix this double call, which seems necessary for image quality
