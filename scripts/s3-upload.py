@@ -27,8 +27,8 @@ def uploadFile(file_name, bucket, object_name):
         return False
     return True
 
-def receiveSqsMessage(bucketName, queueUrl):
-    sqs_client = boto3.client('sqs', region_name="us-west-1")
+def receiveSqsMessage(bucketName, queueUrl, queueRegion):
+    sqs_client = boto3.client('sqs', region_name=queueRegion)
     response = sqs_client.receive_message(
         QueueUrl=queueUrl
     )
@@ -112,6 +112,7 @@ def printSettings():
 BUCKET_NAME = sys.argv[1]
 QUEUE_URL = sys.argv[2]
 SMART_LIGHT_API_URL=sys.argv[3]
+QUEUE_REGION=sys.argv[4]
 
 while True:
-    receiveSqsMessage(BUCKET_NAME, QUEUE_URL)
+    receiveSqsMessage(BUCKET_NAME, QUEUE_URL, QUEUE_REGION)
