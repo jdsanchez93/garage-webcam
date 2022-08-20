@@ -37,9 +37,9 @@ def receiveSqsMessage(bucketName, queueUrl, queueRegion):
         message = json.loads(response['Messages'][0]['Body'])
         print(message)
 
-        if "LightSettings" in message:
-            settings = message['LightSettings']
-            setSmartLight(SMART_LIGHT_API_URL, settings)
+        lightSettings = message.get('LightSettings')
+        if lightSettings is not None:
+            setSmartLight(SMART_LIGHT_API_URL, lightSettings)
 
         if "WebcamSettings" in message:
             captureImage(bucketName, message)
