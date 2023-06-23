@@ -80,6 +80,8 @@ def captureImage(bucketName, message):
     if ret:
         imageId = message['ImageId']
         fileName = "{0}.png".format(imageId)
+
+        frame = cv2.flip(frame, 0)
         
         encoded, buf = cv2.imencode('.png', frame)
         
