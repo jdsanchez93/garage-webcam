@@ -8,6 +8,16 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
 from smartlight import setSmartLight
+import json_log_formatter
+
+formatter = json_log_formatter.VerboseJSONFormatter()
+
+json_handler = logging.StreamHandler(stream=sys.stdout)
+json_handler.setFormatter(formatter)
+
+logger = logging.getLogger('my_json')
+logger.addHandler(json_handler)
+logger.setLevel(logging.INFO)
 
 def uploadFile(file_name, bucket, object_name):
     """Upload a file to an S3 bucket
@@ -23,7 +33,7 @@ def uploadFile(file_name, bucket, object_name):
     try:
         response = s3_client.put_object(Body=file_name, Bucket=bucket, Key=object_name)
     except ClientError as e:
-        logging.error(e)
+        logger.error(e)
         return False
     return True
 
@@ -35,7 +45,7 @@ def receiveSqsMessage(bucketName, queueUrl, queueRegion):
 
     if "Messages" in response:
         message = json.loads(response['Messages'][0]['Body'])
-        logging.info(message)
+        logger.info(message)
 
         lightSettings = message.get('LightSettings')
         if lightSettings is not None:
@@ -44,13 +54,13 @@ def receiveSqsMessage(bucketName, queueUrl, queueRegion):
         if "WebcamSettings" in message:
             captureImage(bucketName, message)
         
-        logging.info("Deleting message from sqs")
+        logger.info("Deleting message from sqs")
         sqs_client.delete_message(
             QueueUrl=queueUrl,
             ReceiptHandle=response['Messages'][0]['ReceiptHandle'],
         )
     else:
-        logging.info("No messages in SQS")
+        logger.info("No messages in SQS")
 
 cameraProperties = {
     "Brightness": cv2.CAP_PROP_BRIGHTNESS,
@@ -61,7 +71,7 @@ def setVideoCapturePropery(propName, settings, propId, vid):
     if propName in settings:
         x = settings[propName]
         if x is not None:
-            logging.info(propName, x)
+            logger.info("{}: {}".format(propName, x))
             vid.set(propId, x)
         
 def captureImage(bucketName, message):
@@ -86,29 +96,29 @@ def captureImage(bucketName, message):
         encoded, buf = cv2.imencode('.png', frame)
         
         if encoded:
-            logging.info("Uploading " + fileName)
+            logger.info("Uploading " + fileName)
             uploadFile(buf.tobytes(), bucketName, fileName)
         else:
-            logging.error("Something went wrong encoding image...")
+            logger.error("Something went wrong encoding image...")
 
         vid.release()
 
         cv2.destroyAllWindows()
     else:
-        logging.error('Could not read video capture')
+        logger.error('Could not read video capture')
 
 def printSettings():
-    logging.info("\nAuto settings")
-    logging.info("CAP_PROP_AUTO_EXPOSURE", vid.get(cv2.CAP_PROP_AUTO_EXPOSURE))
-    logging.info("CAP_PROP_AUTOFOCUS", vid.get(cv2.CAP_PROP_AUTOFOCUS))
-    logging.info("CAP_PROP_AUTO_WB", vid.get(cv2.CAP_PROP_AUTO_WB))
-    logging.info("\nManually set")
-    logging.info("CAP_PROP_BRIGHTNESS", vid.get(cv2.CAP_PROP_BRIGHTNESS))
-    logging.info("CAP_PROP_CONTRAST", vid.get(cv2.CAP_PROP_CONTRAST))
-    logging.info("CAP_PROP_GAMMA", vid.get(cv2.CAP_PROP_GAMMA))
-    logging.info("CAP_PROP_SATURATION", vid.get(cv2.CAP_PROP_SATURATION))
-    logging.info("CAP_PROP_MODE", vid.get(cv2.CAP_PROP_MODE))
-    logging.info("CAP_PROP_SHARPNESS", vid.get(cv2.CAP_PROP_SHARPNESS))
+    logger.info("\nAuto settings")
+    logger.info("CAP_PROP_AUTO_EXPOSURE {}".format(vid.get(cv2.CAP_PROP_AUTO_EXPOSURE)))
+    logger.info("CAP_PROP_AUTOFOCUS {}".format(vid.get(cv2.CAP_PROP_AUTOFOCUS)))
+    logger.info("CAP_PROP_AUTO_WB {}".format(vid.get(cv2.CAP_PROP_AUTO_WB)))
+    logger.info("\nManually set")
+    logger.info("CAP_PROP_BRIGHTNESS {}".format(vid.get(cv2.CAP_PROP_BRIGHTNESS)))
+    logger.info("CAP_PROP_CONTRAST {}".format(vid.get(cv2.CAP_PROP_CONTRAST)))
+    logger.info("CAP_PROP_GAMMA {}".format(vid.get(cv2.CAP_PROP_GAMMA)))
+    logger.info("CAP_PROP_SATURATION {}".format(vid.get(cv2.CAP_PROP_SATURATION)))
+    logger.info("CAP_PROP_MODE {}".format(vid.get(cv2.CAP_PROP_MODE)))
+    logger.info("CAP_PROP_SHARPNESS {}".format(vid.get(cv2.CAP_PROP_SHARPNESS)))
 
 
 BUCKET_NAME = sys.argv[1]
