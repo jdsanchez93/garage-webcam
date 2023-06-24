@@ -60,7 +60,7 @@ def receiveSqsMessage(bucketName, queueUrl, queueRegion):
             ReceiptHandle=response['Messages'][0]['ReceiptHandle'],
         )
     else:
-        logger.info("No messages in SQS")
+        logger.debug("No messages in SQS")
 
 cameraProperties = {
     "Brightness": cv2.CAP_PROP_BRIGHTNESS,
